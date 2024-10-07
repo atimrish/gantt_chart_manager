@@ -1,0 +1,20 @@
+@font-face {
+    font-family: 'Montserrat';
+    src:
+            url("@assets/fonts/Montserrat-VariableFont_wght.ttf") format("truetype supports variations"),
+            url("@assets/fonts/Montserrat-VariableFont_wght.ttf") format("truetype-variations");
+}
+
+*::before,
+*::after,
+* {
+    box-sizing: border-box;
+    font-family: 'Montserrat', sans-serif;
+}
+
+:root {
+    --accent-color: #6B8C8B;
+    --black: #343434;
+    --white: #FFFFFF;
+    --light-gray: #F6F5F5;
+}
