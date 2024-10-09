@@ -1,11 +1,13 @@
 import styled from "styled-components";
 import {useTaskContext} from "@src/context/taskContext";
-import {createRef, MouseEventHandler, useRef, useState} from "react";
+import {createRef, MouseEventHandler, useEffect, useRef, useState} from "react";
+import {TaskCoordinate, TaskInteractiveContainer} from "@comp/common/TaskInteractiveContainer/TaskInteractiveContainer";
 
 const Container = styled.div`
     width: 100%;
     height: 100%;
     overflow: scroll;
+    position: relative;
 `
 
 const Table = styled.table`
@@ -86,6 +88,7 @@ const dates = ((countMonths: number, startDate: Date) => {
 
 export const GantContainer = () => {
     const {tasks} = useTaskContext()
+    const [taskCoordinates, setTaskCoordinates] = useState<Array<TaskCoordinate>>([])
 
     const minDate =
         tasks.reduce((acc, cur) => acc > cur.start ? cur.start : acc, new Date())
@@ -93,7 +96,18 @@ export const GantContainer = () => {
     const {days, months} = dates(3, minDate)
     const containerRef = useRef<HTMLDivElement>(null)
 
-    const [taskCords, setTaskCords] = useState([])
+    useEffect(() => {
+        const interactive: Array<TaskCoordinate> = tasks.map(t => {
+            const nodes = containerRef.current.querySelectorAll(`td[data-task="${t.id}"]`)
+            return {
+                taskId: +t.id,
+                start: nodes[0],
+                end: nodes[1],
+            }
+        })
+
+        setTaskCoordinates(interactive)
+    }, [tasks]);
 
     return (
         <>
@@ -119,31 +133,16 @@ export const GantContainer = () => {
                             <tr key={+id}>
                                 {
                                     days.map(({date, year, month}, index) => {
-
                                             const isStart =
                                                 start.getDate() === date &&
                                                 start.getMonth() === month &&
                                                 start.getFullYear() === year
-
                                             const isEnd =
                                                 end.getDate() === date &&
                                                 end.getMonth() === month &&
                                                 end.getFullYear() === year
 
-
-                                            const onClick: MouseEventHandler = (e) => {
-                                                console.log(e.currentTarget.getBoundingClientRect())
-                                            }
-
-                                            if (isStart) {
-                                                return <td onClick={onClick} key={index}>{+id}</td>
-                                            }
-
-                                            if (isEnd) {
-                                                return <td onClick={onClick} key={index}>{+id}</td>
-                                            }
-
-                                            return <td onClick={onClick} key={index}></td>
+                                            return <td key={index} data-task={isStart || isEnd ? +id : null}></td>
                                         }
                                     )
                                 }
@@ -152,6 +151,7 @@ export const GantContainer = () => {
                     }
                     </tbody>
                 </Table>
+                <TaskInteractiveContainer taskCoordinates={taskCoordinates} containerRef={containerRef.current} />
             </Container>
         </>
     );
