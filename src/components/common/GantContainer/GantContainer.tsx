@@ -1,6 +1,6 @@
 import styled from "styled-components";
 import {useTaskContext} from "@src/context/taskContext";
-import {createRef, MouseEventHandler, useEffect, useRef, useState} from "react";
+import {createRef, DragEventHandler, MouseEventHandler, useEffect, useRef, useState} from "react";
 import {TaskCoordinate, TaskInteractiveContainer} from "@comp/common/TaskInteractiveContainer/TaskInteractiveContainer";
 
 const Container = styled.div`
@@ -36,13 +36,12 @@ const Table = styled.table`
     }
 
     tbody > tr {
-
         td {
             position: relative;
-        }
-
-        &:last-child td {
-            height: 500px;
+            
+            &:hover {
+                background-color: antiquewhite;
+            }
         }
     }
 
@@ -105,8 +104,28 @@ export const GantContainer = () => {
                 end: nodes[1],
             }
         })
-
         setTaskCoordinates(interactive)
+    }, [tasks]);
+
+
+
+    useEffect(() => {
+        const dropHandler = () => console.log('drop')
+        const dragover = (e: DragEvent) => {
+            e.preventDefault()
+        }
+        const td = document.querySelectorAll('td')
+        td.forEach(elem => {
+            elem.addEventListener('drop', dropHandler)
+            elem.addEventListener('dragover', dragover)
+        })
+
+        return () => {
+            td.forEach(elem => {
+                elem.removeEventListener('drop', dropHandler)
+                elem.removeEventListener('dragover', dragover)
+            })
+        }
     }, [tasks]);
 
     return (
@@ -133,16 +152,17 @@ export const GantContainer = () => {
                             <tr key={+id}>
                                 {
                                     days.map(({date, year, month}, index) => {
-                                            const isStart =
-                                                start.getDate() === date &&
-                                                start.getMonth() === month &&
-                                                start.getFullYear() === year
-                                            const isEnd =
-                                                end.getDate() === date &&
-                                                end.getMonth() === month &&
-                                                end.getFullYear() === year
+                                            const isTask =
+                                                [start.getDate(), end.getDate()].includes(date) &&
+                                                [start.getMonth(), end.getMonth()].includes(month) &&
+                                                [start.getFullYear(), end.getFullYear()].includes(year)
 
-                                            return <td key={index} data-task={isStart || isEnd ? +id : null}></td>
+                                            return (
+                                                <td
+                                                    key={index}
+                                                    data-task={isTask ? +id : null}
+                                                ></td>
+                                            )
                                         }
                                     )
                                 }

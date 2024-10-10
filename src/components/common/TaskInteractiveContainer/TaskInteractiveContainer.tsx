@@ -21,7 +21,7 @@ export const TaskInteractiveContainer = (p: Props) => {
 
                 return {
                     taskId: t.taskId,
-                    top: start.top - containerCords.top + 6,
+                    top: start.top - containerCords.top + 4.5,
                     left: start.left - containerCords.left + 4,
                     right: end.right - containerCords.left - 6,
                 }
