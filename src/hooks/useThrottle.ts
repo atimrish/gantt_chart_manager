@@ -5,7 +5,7 @@
  */
 const useThrottle = (callback: Function, ms: number): Function => {
     const timer = isTimeDone(ms)
-    return () => timer.next().value ? callback() : 0
+    return (...args:Array<any>) => timer.next().value ? callback(...args) : 0
 }
 
 /**

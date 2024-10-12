@@ -1,6 +1,6 @@
 import styled from "styled-components";
 import {useTaskContext} from "@src/context/taskContext";
-import {createRef, DragEventHandler, MouseEventHandler, useEffect, useRef, useState} from "react";
+import React, {useEffect, useRef, useState} from "react";
 import {TaskCoordinate, TaskInteractiveContainer} from "@comp/common/TaskInteractiveContainer/TaskInteractiveContainer";
 
 const Container = styled.div`
@@ -107,27 +107,6 @@ export const GantContainer = () => {
         setTaskCoordinates(interactive)
     }, [tasks]);
 
-
-
-    useEffect(() => {
-        const dropHandler = () => console.log('drop')
-        const dragover = (e: DragEvent) => {
-            e.preventDefault()
-        }
-        const td = document.querySelectorAll('td')
-        td.forEach(elem => {
-            elem.addEventListener('drop', dropHandler)
-            elem.addEventListener('dragover', dragover)
-        })
-
-        return () => {
-            td.forEach(elem => {
-                elem.removeEventListener('drop', dropHandler)
-                elem.removeEventListener('dragover', dragover)
-            })
-        }
-    }, [tasks]);
-
     return (
         <>
             <Container ref={containerRef}>
@@ -161,6 +140,7 @@ export const GantContainer = () => {
                                                 <td
                                                     key={index}
                                                     data-task={isTask ? +id : null}
+                                                    data-date={`${date}.${month}.${year}`}
                                                 ></td>
                                             )
                                         }

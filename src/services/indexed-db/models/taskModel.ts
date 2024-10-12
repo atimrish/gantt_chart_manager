@@ -39,6 +39,19 @@ const createTask = async (data: ITaskModel) => {
     return response
 }
 
-export { ITaskModel, getAllTasks, createTask }
+const updateTask = async (data: ITaskModel) => {
+    const connection = await getIDBConnection()
+    const transaction = connection.transaction(MODEL_NAME, 'readwrite')
+    const request = transaction.objectStore(MODEL_NAME).put(data)
+    const response:IDBValidKey = await new Promise((resolve, reject) => {
+        request.onsuccess = () => resolve(request.result)
+        request.onerror = () => reject(request.error)
+    })
+
+    connection.close()
+    return response
+}
+
+export { ITaskModel, getAllTasks, createTask, updateTask }
 
 

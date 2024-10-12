@@ -3,12 +3,14 @@ import {ITaskModel} from "@src/services/indexed-db/models/taskModel";
 
 interface ITaskContext {
     tasks: Array<ITaskModel>
-    setTasks: React.Dispatch<React.SetStateAction<Array<ITaskModel>>>;
+    setTasks: React.Dispatch<React.SetStateAction<Array<ITaskModel>>>
+    fetchTasks: () => void
 }
 
 const TaskContext = createContext<ITaskContext>({
     tasks: [],
-    setTasks: () => {}
+    setTasks: () => {},
+    fetchTasks: () => {}
 })
 
 const useTaskContext = () => useContext(TaskContext);

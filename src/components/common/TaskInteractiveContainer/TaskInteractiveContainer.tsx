@@ -37,6 +37,7 @@ export const TaskInteractiveContainer = (p: Props) => {
                     cords.map(t =>
                         <InteractiveTask
                             key={t.taskId}
+                            containerRef={p.containerRef}
                             $top={t.top}
                             $left={t.left}
                             $right={t.right}

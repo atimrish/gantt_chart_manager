@@ -10,14 +10,18 @@ type ProviderTreeProps = {
 export const ProviderTree = (p: ProviderTreeProps) => {
     const [tasks, setTasks] = useState<Array<ITaskModel>>([])
 
-    useEffect(() => {
+    const fetchTasks = () => {
         getAllTasks()
             .then(res => setTasks(res))
+    }
+
+    useEffect(() => {
+        fetchTasks()
     }, []);
 
     return (
         <>
-            <TaskContext.Provider value={{ tasks, setTasks }}>
+            <TaskContext.Provider value={{ tasks, setTasks, fetchTasks }}>
                 <PopupProvider>
                     {p.children}
                 </PopupProvider>

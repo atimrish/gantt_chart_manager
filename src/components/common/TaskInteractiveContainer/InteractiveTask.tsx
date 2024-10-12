@@ -1,7 +1,7 @@
 import styled from "styled-components";
 import {useTaskContext} from "@src/context/taskContext";
-import {useEffect, useRef, useState} from "react";
-import {ITaskModel} from "@src/services/indexed-db/models/taskModel";
+import React, {DragEvent, MouseEvent, useEffect, useRef, useState} from "react";
+import {ITaskModel, updateTask} from "@src/services/indexed-db/models/taskModel";
 import {useThrottle} from "@src/hooks/useThrottle";
 
 type StyledInteractiveTaskProps = {
@@ -11,7 +11,8 @@ type StyledInteractiveTaskProps = {
 }
 
 type Props = StyledInteractiveTaskProps & {
-    taskId: number
+    taskId: number,
+    containerRef?: HTMLDivElement
 }
 
 const Container = styled.div<StyledInteractiveTaskProps>`
@@ -22,6 +23,7 @@ const Container = styled.div<StyledInteractiveTaskProps>`
     top: ${p => p.$top}px;
     left: ${p => p.$left}px;
     width: ${p => p.$right - p.$left}px;
+    transition: all 0.1s ease-in-out;
     height: 16px;
     border-radius: 8px;
     display: flex;
@@ -55,49 +57,83 @@ const Button = styled.div`
     }
 `
 
-export const InteractiveTask = (p: Props) => {
-    const {tasks} = useTaskContext()
+let count = 0
+
+export const InteractiveTask = React.memo((p: Props) => {
+    console.log(++count)
+    const {tasks, fetchTasks} = useTaskContext()
     const [currentTask, setCurrentTask] = useState<ITaskModel|null>(null)
     const leftButtonRef = useRef<HTMLDivElement>(null)
     const rightButtonRef = useRef<HTMLDivElement>(null)
+    const containerRect = p.containerRef?.getBoundingClientRect()
+    const [leftDiff, setLeftDiff] = useState<number>(0)
+    const [rightDiff, setRightDiff] = useState<number>(0)
+
+    const throttledLeft = useThrottle((e: MouseEvent) => {
+        setLeftDiff(e.clientX - p.$left - containerRect.left)
+    }, 100)
+
+    const throttledRight = useThrottle((e: MouseEvent) => {
+        setRightDiff(e.clientX - p.$right - containerRect.left)
+    }, 100)
+
+    const mouseMoveLeft = (e: React.MouseEvent) => throttledLeft(e)
+    const mouseMoveRight = (e: React.MouseEvent) => throttledRight(e)
+
+    const dragStartLeft = () => {
+        document.addEventListener('dragover', mouseMoveLeft as () => {})
+    }
+
+    const dragStartRight = () => {
+        document.addEventListener('dragover', mouseMoveRight as () => {})
+    }
+
+    const dragEndLeft = async () => {
+        document.removeEventListener('dragover', mouseMoveLeft as () => {})
+        const [x, y] = [containerRect.left + p.$left + leftDiff, containerRect.top + p.$top]
+        const droppedElement = document.elementFromPoint(x, y)
+        const [date, month, year] = droppedElement.getAttribute('data-date').split('.')
+        currentTask.start.setDate(+date)
+        currentTask.start.setMonth(+month)
+        currentTask.start.setFullYear(+year)
+        await updateTask(currentTask)
+        fetchTasks()
+        setLeftDiff(0)
+    }
+
+    const dragEndRight = async () => {
+        document.removeEventListener('dragover', mouseMoveRight as () => {})
+        const [x, y] = [containerRect.left + p.$right + rightDiff, containerRect.top + p.$top]
+        const droppedElement = document.elementFromPoint(x, y)
+        const [date, month, year] = droppedElement.getAttribute('data-date').split('.')
+        currentTask.end.setDate(+date)
+        currentTask.end.setMonth(+month)
+        currentTask.end.setFullYear(+year)
+        await updateTask(currentTask)
+        fetchTasks()
+        setRightDiff(0)
+    }
 
     useEffect(() => {
         const current = tasks.find(i => i.id === p.taskId)
         setCurrentTask(current)
     }, []);
 
-    useEffect(() => {
-        const dragStartHandler = () => console.log('drag start')
-        const throttled = useThrottle(() => console.log('drag'), 500)
-        const dragHandler = () => throttled()
-        const dragEndHandler = () => console.log('drag end')
-
-        leftButtonRef.current.addEventListener('dragstart', dragStartHandler)
-        leftButtonRef.current.addEventListener('drag', dragHandler)
-        leftButtonRef.current.addEventListener('dragend', dragEndHandler)
-
-        rightButtonRef.current.addEventListener('dragstart', dragStartHandler)
-        rightButtonRef.current.addEventListener('drag', dragHandler)
-        rightButtonRef.current.addEventListener('dragend', dragEndHandler)
-
-        return () => {
-            leftButtonRef.current.removeEventListener('dragstart', dragStartHandler)
-            leftButtonRef.current.removeEventListener('drag', dragHandler)
-            leftButtonRef.current.removeEventListener('dragend', dragEndHandler)
-
-            rightButtonRef.current.removeEventListener('dragstart', dragStartHandler)
-            rightButtonRef.current.removeEventListener('drag', dragHandler)
-            rightButtonRef.current.removeEventListener('dragend', dragEndHandler)
-        }
-    }, []);
-
-    ///TODO: реализовать throttle
-
     return (
-        <Container $top={p.$top} $left={p.$left} $right={p.$right}>
-            <Button draggable ref={leftButtonRef}/>
+        <Container $top={p.$top} $left={p.$left + leftDiff} $right={p.$right + rightDiff}>
+            <Button
+                draggable
+                ref={leftButtonRef}
+                onDragStart={dragStartLeft}
+                onDragEnd={dragEndLeft}
+            />
             <Title>{currentTask?.title}</Title>
-            <Button draggable ref={rightButtonRef}/>
+            <Button
+                draggable
+                ref={rightButtonRef}
+                onDragStart={dragStartRight}
+                onDragEnd={dragEndRight}
+            />
         </Container>
     );
-};
+});
