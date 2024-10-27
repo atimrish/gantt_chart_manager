@@ -1,8 +1,9 @@
 import styled from "styled-components";
 import {useTaskContext} from "@src/context/taskContext";
-import React, {DragEvent, MouseEvent, useEffect, useRef, useState} from "react";
+import React, {MouseEvent, useEffect, useRef, useState} from "react";
 import {ITaskModel, updateTask} from "@src/services/indexed-db/models/taskModel";
 import {useThrottle} from "@src/hooks/useThrottle";
+import {Tooltip, Typography} from "@mui/material";
 
 type StyledInteractiveTaskProps = {
     $top: number,
@@ -57,10 +58,7 @@ const Button = styled.div`
     }
 `
 
-let count = 0
-
 export const InteractiveTask = React.memo((p: Props) => {
-    console.log(++count)
     const {tasks, fetchTasks} = useTaskContext()
     const [currentTask, setCurrentTask] = useState<ITaskModel|null>(null)
     const leftButtonRef = useRef<HTMLDivElement>(null)
@@ -68,13 +66,17 @@ export const InteractiveTask = React.memo((p: Props) => {
     const containerRect = p.containerRef?.getBoundingClientRect()
     const [leftDiff, setLeftDiff] = useState<number>(0)
     const [rightDiff, setRightDiff] = useState<number>(0)
+    const [startDate, setStartDate] = useState<string>()
+    const [endDate, setEndDate] = useState<string>()
 
     const throttledLeft = useThrottle((e: MouseEvent) => {
         setLeftDiff(e.clientX - p.$left - containerRect.left)
+
     }, 100)
 
     const throttledRight = useThrottle((e: MouseEvent) => {
         setRightDiff(e.clientX - p.$right - containerRect.left)
+
     }, 100)
 
     const mouseMoveLeft = (e: React.MouseEvent) => throttledLeft(e)
@@ -82,10 +84,11 @@ export const InteractiveTask = React.memo((p: Props) => {
 
     const dragStartLeft = () => {
         document.addEventListener('dragover', mouseMoveLeft as () => {})
-    }
 
+    }
     const dragStartRight = () => {
         document.addEventListener('dragover', mouseMoveRight as () => {})
+
     }
 
     const dragEndLeft = async () => {
@@ -99,8 +102,9 @@ export const InteractiveTask = React.memo((p: Props) => {
         await updateTask(currentTask)
         fetchTasks()
         setLeftDiff(0)
-    }
 
+    }
+    ///TODO: Реализовать сторонний API (класс) для работы с датами
     const dragEndRight = async () => {
         document.removeEventListener('dragover', mouseMoveRight as () => {})
         const [x, y] = [containerRect.left + p.$right + rightDiff, containerRect.top + p.$top]
@@ -116,24 +120,51 @@ export const InteractiveTask = React.memo((p: Props) => {
 
     useEffect(() => {
         const current = tasks.find(i => i.id === p.taskId)
+        const start = current.start.toLocaleDateString('ru-RU', {
+            month: 'long',
+            day: 'numeric',
+            year: 'numeric'
+        })
+        const end = current.end.toLocaleDateString('ru-RU', {
+            month: 'long',
+            day: 'numeric',
+            year: 'numeric'
+        })
         setCurrentTask(current)
+        setStartDate(start)
+        setEndDate(end)
     }, []);
 
     return (
-        <Container $top={p.$top} $left={p.$left + leftDiff} $right={p.$right + rightDiff}>
-            <Button
-                draggable
-                ref={leftButtonRef}
-                onDragStart={dragStartLeft}
-                onDragEnd={dragEndLeft}
-            />
-            <Title>{currentTask?.title}</Title>
-            <Button
-                draggable
-                ref={rightButtonRef}
-                onDragStart={dragStartRight}
-                onDragEnd={dragEndRight}
-            />
-        </Container>
+        <>
+            <Container $top={p.$top} $left={p.$left + leftDiff} $right={p.$right + rightDiff}>
+                <Tooltip title={startDate}>
+                    <Button
+                        draggable
+                        ref={leftButtonRef}
+                        onDragStart={dragStartLeft}
+                        onDragEnd={dragEndLeft}
+                    />
+                </Tooltip>
+                <Typography variant="body1" sx={{
+                    color: 'var(--white)',
+                    textOverflow: 'clip',
+                    textWrap: 'nowrap',
+                    overflow: 'hidden',
+                    fontSize: 14,
+                    fontWeight: 600,
+                    lineHeight: 16,
+                    textAlign: 'center',
+                }}>{currentTask?.title}</Typography>
+                <Tooltip title={endDate}>
+                    <Button
+                        draggable
+                        ref={rightButtonRef}
+                        onDragStart={dragStartRight}
+                        onDragEnd={dragEndRight}
+                    />
+                </Tooltip>
+            </Container>
+        </>
     );
 });

@@ -1,11 +1,10 @@
 import styled from "styled-components";
 import AddIconSrc from "@assets/images/add.svg"
-import {usePopupContext} from "@src/services/popup-holder/hooks/usePopupContext";
 import {AddTaskPopup} from "@comp/popup/AddTaskPopup";
-import {useEffect, useState} from "react";
-import {getAllTasks, ITaskModel} from "@src/services/indexed-db/models/taskModel";
 import {Task} from "@comp/common/Task/Task";
 import {useTaskContext} from "@src/context/taskContext";
+import {useState} from "react";
+import {Typography} from "@mui/material";
 
 const MainContainer = styled.div`
     width: 100%;
@@ -50,26 +49,16 @@ const AddTaskButton = styled.button`
     border-radius: 50%;
 `
 
-const Heading = styled.h2`
-    color: var(--black);
-    font-family: 'Montserrat', sans-serif;
-    font-size: 20px;
-`
-
 export const TaskContainer = () => {
-    const {pushPopup} = usePopupContext()
     const {tasks} = useTaskContext()
-
-    const openPopup = () => {
-        pushPopup(<AddTaskPopup/>)
-    }
+    const [isOpenPopup, setIsOpenPopup] = useState(false)
 
     return (
         <>
             <MainContainer>
                 <HeadingBlock>
-                    <Heading>Задачи</Heading>
-                    <AddTaskButton onClick={openPopup}>
+                    <Typography variant="h6">Задачи</Typography>
+                    <AddTaskButton onClick={() => setIsOpenPopup(true)}>
                         <AddIcon/>
                     </AddTaskButton>
                 </HeadingBlock>
@@ -78,6 +67,7 @@ export const TaskContainer = () => {
                     {tasks.map((t) => <Task {...t} key={+t.id} />)}
                 </div>
             </MainContainer>
+            <AddTaskPopup open={isOpenPopup} closePopup={() => setIsOpenPopup(false)}/>
         </>
     );
 };

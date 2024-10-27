@@ -1,13 +1,14 @@
-import {FC, useEffect, useState} from "react";
+import {FC} from "react";
 import {MainLayout} from "@src/layout/MainLayout";
 import styled from "styled-components";
 import {TaskContainer} from "@comp/common/TasksContainer/TaskContainer";
-import {PopupProvider} from "@src/services/popup-holder/components/PopupProvider";
-import {PopupHolder} from "@src/services/popup-holder/components/PopupHolder";
-import {TaskContext} from "./context/taskContext";
-import {getAllTasks, ITaskModel} from "@src/services/indexed-db/models/taskModel";
 import {GantContainer} from "@comp/common/GantContainer/GantContainer";
 import {ProviderTree} from "@comp/hoc/ProviderTree";
+import '@fontsource/roboto/300.css';
+import '@fontsource/roboto/400.css';
+import '@fontsource/roboto/500.css';
+import '@fontsource/roboto/700.css';
+
 
 const Workflow = styled.div`
     display: flex;
@@ -44,7 +45,6 @@ export const App: FC = () => {
                         </Gant>
                     </Workflow>
                 </MainLayout>
-                <PopupHolder/>
             </ProviderTree>
         </>
     );

@@ -1,89 +1,13 @@
-import styled, {css} from "styled-components";
-import CloseSrc from "@assets/images/close.svg"
-import {usePopupContext} from "@src/services/popup-holder/hooks/usePopupContext";
+import styled from "styled-components";
 import {FormEventHandler, useRef, useState} from "react";
 import {createTask, ITaskModel} from "@src/services/indexed-db/models/taskModel";
 import {useTaskContext} from "@src/context/taskContext";
-
-const PopupContainer = styled.div`
-    width: 1048px;
-    height: 840px;
-    border-radius: 35px;
-    background-color: var(--light-gray);
-    padding: 32px;
-`
-
-const InteractiveBlock = styled.div`
-    display: flex;
-    flex-direction: row-reverse;
-    margin-bottom: 10px;
-`
-
-const CloseIcon = styled(CloseSrc)`
-    width: 100%;
-    height: 100%;
-`
-
-const CloseButton = styled.button`
-    width: 48px;
-    height: 48px;
-    overflow: hidden;
-    background-color: transparent;
-    border-radius: 50%;
-    padding: 0;
-    margin: 0;
-    border: none;
-    cursor: pointer;
-`
+import {Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField, Typography} from "@mui/material";
 
 const Form = styled.form`
     display: flex;
     flex-direction: column;
     gap: 20px;
-`
-
-const TitleInput = styled.input`
-    font-size: 24px;
-    font-family: 'Montserrat', sans-serif;
-    font-weight: 550;
-    color: var(--black);
-    width: 100%;
-    border: none;
-    padding: 6px;
-`
-
-const TextStyles = css`
-    font-size: 18px;
-    font-family: 'Montserrat', sans-serif;
-    font-weight: 550;
-    color: var(--black);
-`
-
-const Label = styled.label`
-    ${TextStyles}   
-`
-
-const DataText = styled.div`
-    ${TextStyles}
-`
-
-const Textarea = styled.textarea`
-    padding: 20px 20px 0 20px;
-    font-size: 16px;
-    font-family: 'Montserrat', sans-serif;
-    min-height: 500px;
-    border: none;
-    border-radius: 35px;
-    resize: none;
-`
-
-const FormButton = styled.button`
-    ${TextStyles};
-    width: 120px;
-    padding: 0;
-    margin: 0;
-    border: none;
-    background-color: transparent;
 `
 
 interface ICreateTaskForm {
@@ -93,10 +17,13 @@ interface ICreateTaskForm {
     end: string
 }
 
-export const AddTaskPopup = () => {
-    const {shiftPopup} = usePopupContext()
+interface IAddTaskPopupProps {
+    open: boolean,
+    closePopup: Function,
+}
+
+export const AddTaskPopup = (p: IAddTaskPopupProps) => {
     const {setTasks} = useTaskContext()
-    const closePopup = () => shiftPopup()
 
     const nowString = useRef(new Date().toLocaleDateString('ru-RU', {
         year: 'numeric',
@@ -124,56 +51,76 @@ export const AddTaskPopup = () => {
         }
         data.id = await createTask(data)
         setTasks(prev => [...prev, data])
-        shiftPopup()
     }
 
     return (
         <>
-            <PopupContainer>
-                <InteractiveBlock>
-                    <CloseButton onClick={closePopup}>
-                        <CloseIcon/>
-                    </CloseButton>
-                </InteractiveBlock>
+            <Dialog open={p.open}>
+                <DialogTitle>Добавление задачи</DialogTitle>
                 <Form onSubmit={onSubmit}>
-                    <TitleInput
-                        placeholder="Название задачи"
-                        value={formState.title}
-                        onInput={(e) => setFormState({
-                            ...formState,
-                            title: e.currentTarget.value
-                        })}
-                    />
-                    <DataText>Дата создания: {nowString.current}</DataText>
-                    <Label>
-                        <span>Сроки реализации: </span>
-                        <input
-                            type="date"
+                    <DialogContent>
+                        <TextField
+                            fullWidth
+                            placeholder="Название задачи"
+                            variant="standard"
+                            value={formState.title}
                             onChange={(e) => setFormState({
                                 ...formState,
-                                start: e.currentTarget.value
+                                title: e.currentTarget.value
                             })}
                         />
-                        <span> - </span>
-                        <input
-                            type="date"
+                        <Typography variant="body1" sx={{my: 2}}>Дата создания: {nowString.current}</Typography>
+
+                        <div>
+                            <Typography variant="body1" sx={{my: 1}}>Сроки реализации: </Typography>
+                            <Typography variant="body1" component="label" htmlFor="start_date">Начало</Typography>
+                            <input
+                                id="start_date"
+                                type="date"
+                                onChange={(e) => setFormState({
+                                    ...formState,
+                                    start: e.currentTarget.value
+                                })}
+                            />
+                            <Typography variant="body1" component="label" htmlFor="end_date">Конец</Typography>
+                            <input
+                                id="end_date"
+                                type="date"
+                                onChange={(e) => setFormState({
+                                    ...formState,
+                                    end: e.currentTarget.value
+                                })}
+                            />
+                        </div>
+
+                        <Typography variant="body1" sx={{my: 2}}>Завершено: нет</Typography>
+                        <TextField
+                            fullWidth
+                            placeholder="Описание задачи"
+                            multiline
+                            variant="standard"
+                            value={formState.description}
                             onChange={(e) => setFormState({
                                 ...formState,
-                                end: e.currentTarget.value
+                                description: e.currentTarget.value
                             })}
                         />
-                    </Label>
-                    <DataText>Завершено: нет</DataText>
-                    <Textarea
-                        value={formState.description}
-                        onInput={(e) => setFormState({
-                            ...formState,
-                            description: e.currentTarget.value
-                        })}
-                    />
-                    <FormButton>сохранить</FormButton>
+                    </DialogContent>
+                    <DialogActions>
+                        <Button
+                            type="submit"
+                            variant="contained"
+                        >сохранить</Button>
+
+                        <Button
+                            type="button"
+                            variant="outlined"
+                            onClick={() => p.closePopup()}
+                        >закрыть</Button>
+                    </DialogActions>
+
                 </Form>
-            </PopupContainer>
+            </Dialog>
         </>
     );
 };

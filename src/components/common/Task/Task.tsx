@@ -1,6 +1,7 @@
 import {ITaskModel} from "@src/services/indexed-db/models/taskModel";
 import TaskSrc from "@assets/images/task.svg"
 import styled from "styled-components";
+import {Typography} from "@mui/material";
 
 const TaskIcon = styled(TaskSrc)`
     width: 24px;
@@ -33,7 +34,7 @@ export const Task = (p: ITaskModel) => {
         <>
             <TaskContainer>
                 <TaskIcon/>
-                <span>{p.title}</span>
+                <Typography variant="body2">{p.title}</Typography>
             </TaskContainer>
         </>
     );

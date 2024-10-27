@@ -2,6 +2,7 @@ import styled from "styled-components";
 import {useTaskContext} from "@src/context/taskContext";
 import React, {useEffect, useRef, useState} from "react";
 import {TaskCoordinate, TaskInteractiveContainer} from "@comp/common/TaskInteractiveContainer/TaskInteractiveContainer";
+import {Typography} from "@mui/material";
 
 const Container = styled.div`
     width: 100%;
@@ -115,13 +116,17 @@ export const GantContainer = () => {
                     <tr>
                         {
                             months.map((m, index) =>
-                                <th key={index} colSpan={m.daysCount}>{m.month} {m.year}</th>)
+                                <th key={index} colSpan={m.daysCount}>
+                                    <Typography variant="body1" sx={{fontWeight: 700}}>{m.month} {m.year}</Typography>
+                                </th>)
                         }
                     </tr>
                     <tr>
                         {
                             days.map((d, index) =>
-                                <th key={index}>{d.date}</th>)
+                                <th key={index}>
+                                    <Typography variant="body1" sx={{fontSize: 14, lineHeight: '22px'}}>{d.date}</Typography>
+                                </th>)
                         }
                     </tr>
                     </thead>

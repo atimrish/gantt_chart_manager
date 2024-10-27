@@ -1,8 +1,6 @@
 import type {Configuration as DevServerConfig} from 'webpack-dev-server';
 import path from "node:path";
 import webpack from "webpack";
-import HtmlWebpackPlugin from "html-webpack-plugin";
-import MiniCssExtractPlugin from "mini-css-extract-plugin";
 import CssMinimizerPlugin from "css-minimizer-webpack-plugin";
 import {buildPlugins} from "./config/webpack/buildPlugins";
 import {buildModules} from "./config/webpack/buildModules";

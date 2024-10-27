@@ -8,6 +8,7 @@ const buildResolvers = () => {
             '@src': path.resolve('src'),
             '@comp': path.resolve('src', 'components'),
             '@assets': path.resolve('public', 'assets'),
+            '@mui/styled-engine': '@mui/styled-engine-sc',
         }
     }
 
