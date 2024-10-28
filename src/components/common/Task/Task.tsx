@@ -1,4 +1,4 @@
-import {ITaskModel} from "@src/services/indexed-db/models/taskModel";
+import {ITaskModel} from "@src/services/indexedDB/models/taskModel";
 import TaskSrc from "@assets/images/task.svg"
 import styled from "styled-components";
 import {Typography} from "@mui/material";

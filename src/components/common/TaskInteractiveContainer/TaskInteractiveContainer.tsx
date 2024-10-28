@@ -1,4 +1,5 @@
 import {InteractiveTask} from "@comp/common/TaskInteractiveContainer/InteractiveTask";
+import {generateColor} from "@src/services/colorGenerator/colorGeneratorService";
 
 export type TaskCoordinate = {
     taskId: number;
@@ -30,6 +31,8 @@ export const TaskInteractiveContainer = (p: Props) => {
         return []
     })()
 
+    const colorGenerator = generateColor()
+
     return (
         <>
             <div>
@@ -42,6 +45,7 @@ export const TaskInteractiveContainer = (p: Props) => {
                             $left={t.left}
                             $right={t.right}
                             taskId={+t.taskId}
+                            $color={colorGenerator.next().value}
                         />
                     )
                 }

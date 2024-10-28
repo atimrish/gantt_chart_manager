@@ -3,6 +3,10 @@ import {useTaskContext} from "@src/context/taskContext";
 import React, {useEffect, useRef, useState} from "react";
 import {TaskCoordinate, TaskInteractiveContainer} from "@comp/common/TaskInteractiveContainer/TaskInteractiveContainer";
 import {Typography} from "@mui/material";
+import {IGantTableHeadingMonth} from "@comp/common/GantContainer/interfaces/IGantTableHeadingMonth";
+import {IGantTableDays} from "@comp/common/GantContainer/interfaces/IGantTableDays";
+import {GantTableHeading} from "@comp/common/GantContainer/GantTableHeading";
+import {GantTableBody} from "@comp/common/GantContainer/GantTableBody";
 
 const Container = styled.div`
     width: 100%;
@@ -60,8 +64,8 @@ const Table = styled.table`
 
 const dates = ((countMonths: number, startDate: Date) => {
     const clonedStartDate = new Date(startDate)
-    const months = []
-    const days = []
+    const months: Array<IGantTableHeadingMonth> = []
+    const days: Array<IGantTableDays> = []
 
     for (let i = 0; i < countMonths; i++) {
         const currentMonth = clonedStartDate.getMonth()
@@ -72,7 +76,7 @@ const dates = ((countMonths: number, startDate: Date) => {
             daysCount: 0
         })
 
-        for (; clonedStartDate.getMonth() === currentMonth;) {
+        while (clonedStartDate.getMonth() === currentMonth) {
             months[i].daysCount++
             days.push({
                 date: clonedStartDate.getDate(),
@@ -93,7 +97,7 @@ export const GantContainer = () => {
     const minDate =
         tasks.reduce((acc, cur) => acc > cur.start ? cur.start : acc, new Date())
 
-    const {days, months} = dates(3, minDate)
+    const {days, months} = dates(4, minDate)
     const containerRef = useRef<HTMLDivElement>(null)
 
     useEffect(() => {
@@ -102,7 +106,7 @@ export const GantContainer = () => {
             return {
                 taskId: +t.id,
                 start: nodes[0],
-                end: nodes[1],
+                end: nodes[1] ?? nodes[0],
             }
         })
         setTaskCoordinates(interactive)
@@ -112,49 +116,8 @@ export const GantContainer = () => {
         <>
             <Container ref={containerRef}>
                 <Table>
-                    <thead>
-                    <tr>
-                        {
-                            months.map((m, index) =>
-                                <th key={index} colSpan={m.daysCount}>
-                                    <Typography variant="body1" sx={{fontWeight: 700}}>{m.month} {m.year}</Typography>
-                                </th>)
-                        }
-                    </tr>
-                    <tr>
-                        {
-                            days.map((d, index) =>
-                                <th key={index}>
-                                    <Typography variant="body1" sx={{fontSize: 14, lineHeight: '22px'}}>{d.date}</Typography>
-                                </th>)
-                        }
-                    </tr>
-                    </thead>
-                    <tbody>
-                    {
-                        tasks.map(({start, end, id}) =>
-                            <tr key={+id}>
-                                {
-                                    days.map(({date, year, month}, index) => {
-                                            const isTask =
-                                                [start.getDate(), end.getDate()].includes(date) &&
-                                                [start.getMonth(), end.getMonth()].includes(month) &&
-                                                [start.getFullYear(), end.getFullYear()].includes(year)
-
-                                            return (
-                                                <td
-                                                    key={index}
-                                                    data-task={isTask ? +id : null}
-                                                    data-date={`${date}.${month}.${year}`}
-                                                ></td>
-                                            )
-                                        }
-                                    )
-                                }
-                            </tr>
-                        )
-                    }
-                    </tbody>
+                    <GantTableHeading months={months} days={days} />
+                    <GantTableBody tasks={tasks} days={days} />
                 </Table>
                 <TaskInteractiveContainer taskCoordinates={taskCoordinates} containerRef={containerRef.current} />
             </Container>

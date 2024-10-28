@@ -1,6 +1,6 @@
 import styled from "styled-components";
 import {FormEventHandler, useRef, useState} from "react";
-import {createTask, ITaskModel} from "@src/services/indexed-db/models/taskModel";
+import {createTask, ITaskModel} from "@src/services/indexedDB/models/taskModel";
 import {useTaskContext} from "@src/context/taskContext";
 import {Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField, Typography} from "@mui/material";
 
@@ -51,6 +51,7 @@ export const AddTaskPopup = (p: IAddTaskPopupProps) => {
         }
         data.id = await createTask(data)
         setTasks(prev => [...prev, data])
+        p.closePopup()
     }
 
     return (

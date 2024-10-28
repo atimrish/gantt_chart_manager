@@ -1,14 +1,15 @@
 import styled from "styled-components";
 import {useTaskContext} from "@src/context/taskContext";
 import React, {MouseEvent, useEffect, useRef, useState} from "react";
-import {ITaskModel, updateTask} from "@src/services/indexed-db/models/taskModel";
+import {ITaskModel, updateTask} from "@src/services/indexedDB/models/taskModel";
 import {useThrottle} from "@src/hooks/useThrottle";
 import {Tooltip, Typography} from "@mui/material";
 
 type StyledInteractiveTaskProps = {
     $top: number,
     $left: number,
-    $right: number
+    $right: number,
+    $color: string
 }
 
 type Props = StyledInteractiveTaskProps & {
@@ -18,9 +19,9 @@ type Props = StyledInteractiveTaskProps & {
 
 const Container = styled.div<StyledInteractiveTaskProps>`
     position: absolute;
-    background-color: red;
+    background-color: ${p => p.$color};
     padding: 0 4px;
-    
+
     top: ${p => p.$top}px;
     left: ${p => p.$left}px;
     width: ${p => p.$right - p.$left}px;
@@ -32,17 +33,6 @@ const Container = styled.div<StyledInteractiveTaskProps>`
     justify-content: space-between;
 `
 
-const Title = styled.div`
-    text-overflow: clip;
-    text-wrap: nowrap;
-    overflow: hidden;
-    font-size: 14px;
-    font-weight: 600;
-    line-height: 16px;
-    text-align: center;
-    color: var(--white);
-`
-
 const Button = styled.div`
     padding: 0;
     margin: 0;
@@ -52,7 +42,7 @@ const Button = styled.div`
     flex-shrink: 0;
     background-color: var(--light-gray);
     border: 4px solid transparent;
-    
+
     &:hover {
         border-color: var(--black);
     }
@@ -60,49 +50,37 @@ const Button = styled.div`
 
 export const InteractiveTask = React.memo((p: Props) => {
     const {tasks, fetchTasks} = useTaskContext()
-    const [currentTask, setCurrentTask] = useState<ITaskModel|null>(null)
+    const [currentTask, setCurrentTask] = useState<ITaskModel | null>(null)
     const leftButtonRef = useRef<HTMLDivElement>(null)
     const rightButtonRef = useRef<HTMLDivElement>(null)
-    const containerRect = p.containerRef?.getBoundingClientRect()
     const [leftDiff, setLeftDiff] = useState<number>(0)
     const [rightDiff, setRightDiff] = useState<number>(0)
-    const [startDate, setStartDate] = useState<string>()
-    const [endDate, setEndDate] = useState<string>()
+    const containerRect = p.containerRef?.getBoundingClientRect()
 
-    const throttledLeft = useThrottle((e: MouseEvent) => {
-        setLeftDiff(e.clientX - p.$left - containerRect.left)
+    const throttledLeft = useThrottle((e: MouseEvent) =>
+        setLeftDiff(e.clientX - p.$left - containerRect.left), 100)
 
-    }, 100)
-
-    const throttledRight = useThrottle((e: MouseEvent) => {
-        setRightDiff(e.clientX - p.$right - containerRect.left)
-
-    }, 100)
+    const throttledRight = useThrottle((e: MouseEvent) =>
+        setRightDiff(e.clientX - p.$right - containerRect.left), 100)
 
     const mouseMoveLeft = (e: React.MouseEvent) => throttledLeft(e)
     const mouseMoveRight = (e: React.MouseEvent) => throttledRight(e)
 
-    const dragStartLeft = () => {
+    const dragStartLeft = () =>
         document.addEventListener('dragover', mouseMoveLeft as () => {})
 
-    }
-    const dragStartRight = () => {
+    const dragStartRight = () =>
         document.addEventListener('dragover', mouseMoveRight as () => {})
-
-    }
 
     const dragEndLeft = async () => {
         document.removeEventListener('dragover', mouseMoveLeft as () => {})
         const [x, y] = [containerRect.left + p.$left + leftDiff, containerRect.top + p.$top]
         const droppedElement = document.elementFromPoint(x, y)
         const [date, month, year] = droppedElement.getAttribute('data-date').split('.')
-        currentTask.start.setDate(+date)
-        currentTask.start.setMonth(+month)
-        currentTask.start.setFullYear(+year)
+        currentTask.start = new Date(+year, +month, +date)
         await updateTask(currentTask)
         fetchTasks()
         setLeftDiff(0)
-
     }
     ///TODO: Реализовать сторонний API (класс) для работы с датами
     const dragEndRight = async () => {
@@ -110,35 +88,26 @@ export const InteractiveTask = React.memo((p: Props) => {
         const [x, y] = [containerRect.left + p.$right + rightDiff, containerRect.top + p.$top]
         const droppedElement = document.elementFromPoint(x, y)
         const [date, month, year] = droppedElement.getAttribute('data-date').split('.')
-        currentTask.end.setDate(+date)
-        currentTask.end.setMonth(+month)
-        currentTask.end.setFullYear(+year)
+        currentTask.end = new Date(+year, +month, +date)
         await updateTask(currentTask)
         fetchTasks()
         setRightDiff(0)
     }
 
+    const localize = (date: Date) => {
+        const target = date ?? new Date()
+        return target.toLocaleDateString('ru-RU', {month: 'long', day: 'numeric', year: 'numeric'})
+    }
+
     useEffect(() => {
         const current = tasks.find(i => i.id === p.taskId)
-        const start = current.start.toLocaleDateString('ru-RU', {
-            month: 'long',
-            day: 'numeric',
-            year: 'numeric'
-        })
-        const end = current.end.toLocaleDateString('ru-RU', {
-            month: 'long',
-            day: 'numeric',
-            year: 'numeric'
-        })
         setCurrentTask(current)
-        setStartDate(start)
-        setEndDate(end)
     }, []);
 
     return (
         <>
-            <Container $top={p.$top} $left={p.$left + leftDiff} $right={p.$right + rightDiff}>
-                <Tooltip title={startDate}>
+            <Container $top={p.$top} $left={p.$left + leftDiff} $right={p.$right + rightDiff} $color={p.$color}>
+                <Tooltip title={localize(currentTask?.start)}>
                     <Button
                         draggable
                         ref={leftButtonRef}
@@ -156,7 +125,7 @@ export const InteractiveTask = React.memo((p: Props) => {
                     lineHeight: 16,
                     textAlign: 'center',
                 }}>{currentTask?.title}</Typography>
-                <Tooltip title={endDate}>
+                <Tooltip title={localize(currentTask?.end)}>
                     <Button
                         draggable
                         ref={rightButtonRef}

@@ -1,5 +1,5 @@
 import {ReactNode, useEffect, useState} from "react";
-import {getAllTasks, ITaskModel} from "@src/services/indexed-db/models/taskModel";
+import {getAllTasks, ITaskModel} from "@src/services/indexedDB/models/taskModel";
 import {TaskContext} from "@src/context/taskContext";
 
 type ProviderTreeProps = {
@@ -9,9 +9,9 @@ type ProviderTreeProps = {
 export const ProviderTree = (p: ProviderTreeProps) => {
     const [tasks, setTasks] = useState<Array<ITaskModel>>([])
 
-    const fetchTasks = () => {
-        getAllTasks()
-            .then(res => setTasks(res))
+    const fetchTasks = async () => {
+        const res = await getAllTasks()
+        setTasks(res)
     }
 
     useEffect(() => {

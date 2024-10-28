@@ -1,5 +1,5 @@
 import React, {createContext, useContext} from "react";
-import {ITaskModel} from "@src/services/indexed-db/models/taskModel";
+import {ITaskModel} from "@src/services/indexedDB/models/taskModel";
 
 interface ITaskContext {
     tasks: Array<ITaskModel>

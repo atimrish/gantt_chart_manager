@@ -1,4 +1,4 @@
-import {getIDBConnection} from "@src/services/indexed-db/indexed-db-service";
+import {getIDBConnection} from "@src/services/indexedDB/indexedDBService";
 
 const MODEL_NAME = 'tasks'
 
